@@ -17,7 +17,13 @@ Elk onderdeel doet één ding, en elk gegeven wordt maar op één plek ingevoerd
 | **Pipedrive** | Verkoop en werving | Aanvragen, klantcontact, contactpersonen, kandidaat-zorgverleners |
 | **PandaDoc** | Documenten en handtekeningen | Offertes, zorgvoorstellen, overeenkomsten, arbeidsvoorwaarden |
 | **Airtable** | Uitvoering van de zorg | Plaatsingen, planning, matching, cliëntendossier (ECD) |
-| **Facturatie** (voorstel: Exact Online) | Geld | Verkoopfacturen, inkoopfacturen, debiteuren, boekhouding per BV |
+| **Exact Online** | Facturatie en boekhouding | Verkoopfacturen, inkoopfacturen, debiteuren, boekhouding per BV |
+| **Nmbrs** | Salaris | Loonstroken, loonheffing, verlof en salaris van zorgverleners in loondienst |
+
+Exact en Nmbrs blijven. Een factuur of loonstrook mag niet uit Airtable of Pipedrive komen:
+daarvoor gelden btw-, loonheffings- en bewaarregels die alleen een boekhoud- en salarispakket goed regelt.
+Wel komen de gegevens (gewerkte dagen, tarieven, personeelsnummer) automatisch uit Airtable,
+zodat er niets dubbel wordt ingevoerd.
 
 ## 2. De klantreis van begin tot eind
 
@@ -45,6 +51,18 @@ Facturatie ──► conceptfactuur per klant, in de juiste BV (GCC, SF of SFPS)
       │        jij keurt goed, daarna wordt de factuur verstuurd
       ▼
 Betaling ──► status terug in Pipedrive/Airtable (betaald / herinnering)
+```
+
+En tegelijk voor de zorgverleners:
+
+```
+Einde maand ──► Airtable: gewerkte dagen per zorgverlener (per Personeelsnummer)
+      │
+      ▼
+Nmbrs ──► variabele dagen/uren worden ingelezen, jij controleert, salaris wordt gedraaid
+      │
+      ▼
+Exact Online ──► Nmbrs boekt de loonjournaalpost automatisch in de juiste BV
 ```
 
 Voor zorgverleners loopt het op dezelfde manier: werving in Pipedrive ("Zorgverleners ZIH-NL"),
@@ -79,19 +97,24 @@ en veel eigen velden (112 bij deals, 59 bij personen).
    "ZZ – foutief veld") en de tabel "Klantenoverzicht (excel)" heeft kolommen met
    namen als telefoonnummers en datums. Die tabel kan na controle worden gearchiveerd.
 
-## 5. Facturatie: voorstel
+## 5. Facturatie en salaris
 
-Pipedrive, PandaDoc en Airtable maken geen echte facturen met btw en boekhouding.
-Daarvoor is een apart pakket nodig.
-
-**Voorstel: Exact Online** (je gebruikt het al voor inkoopfacturen):
+**Exact Online**
 - Eén administratie per BV: GCC, Smiling Faces en SFPS (België, Belgische btw-regels)
 - Verkoopfacturen worden aangemaakt vanuit Airtable (maandtelling per plaatsing)
-- Inkoopfacturen blijven via de bestaande e-mailroute naar Exact gaan
+- Inkoopfacturen (o.a. van agents) blijven via de bestaande e-mailroute naar Exact gaan
 - Betaalstatus gaat terug naar Pipedrive, zodat je ziet wie nog moet betalen
 
-Alternatieven als je van Exact af wilt: Moneybird of e-Boekhouden (eenvoudiger, goedkoper,
-maar minder sterk voor een Belgische BV erbij).
+**Nmbrs**
+- Het veld "Personeelsnummer" in Airtable (Zorgverleners) moet gelijk zijn aan het
+  werknemersnummer in Nmbrs. Dat is de sleutel van de koppeling.
+- Maandelijks gaan de gewerkte dagen/uren uit "Plaatsingen" naar Nmbrs
+  (eerst als importbestand, later via de Nmbrs-API).
+- Nmbrs heeft een standaardkoppeling met Exact Online voor de loonjournaalpost; die zetten we aan
+  per BV.
+- Nieuwe zorgverlener in dienst (arbeidsvoorwaarden getekend in PandaDoc) → gegevens klaarzetten
+  voor Nmbrs, zodat je ze niet overtypt.
+- Zorgverleners via een agent of als zzp zitten niet in Nmbrs; die lopen via inkoopfacturen in Exact.
 
 ## 6. Hoe de koppelingen werken
 
@@ -102,6 +125,9 @@ maar minder sterk voor een Belgische BV erbij).
 | Pipedrive → Airtable | Deal gewonnen | Zapier of Make (of Airtable-automatisering met webhook) |
 | Airtable → Exact | Einde maand, na jouw akkoord | Zapier/Make of een klein script |
 | Exact → Pipedrive | Factuur betaald / te laat | Zapier/Make |
+| Airtable → Nmbrs | Einde maand, na jouw akkoord | Importbestand (start), later Nmbrs-API |
+| Nmbrs → Exact | Na elke salarisrun | Standaardkoppeling Nmbrs–Exact Online |
+| PandaDoc → Nmbrs | Arbeidsvoorwaarden getekend | Gegevens klaarzetten voor nieuwe werknemer |
 
 ## 7. Stappenplan
 
@@ -111,7 +137,8 @@ maar minder sterk voor een Belgische BV erbij).
 | **2. Pipedrive ↔ PandaDoc** (week 1–2) | Templates koppelen aan deal-velden, ondertekening zet deal op gewonnen | Jij installeert de app, Claude zet velden klaar |
 | **3. Pipedrive → Airtable** (week 2–3) | Gewonnen deal maakt automatisch klant aan in Planning en ECD | Claude bouwt de automatisering |
 | **4. Facturatie** (week 3–5) | Maandtelling per plaatsing → conceptfactuur per BV in Exact | Samen met boekhouder |
-| **5. Oude software uitzetten** (week 6) | Pas opzeggen als een volle maand foutloos is gefactureerd | Jij |
+| **5. Salaris** (week 4–6) | Personeelsnummers gelijk trekken met Nmbrs, maandexport gewerkte dagen, Nmbrs–Exact-koppeling aan | Samen met salarisadministrateur |
+| **6. Oude software en Excel-lijsten uitzetten** (week 7) | Pas als een volle maand foutloos is gefactureerd én verloond | Jij |
 
 ## 8. Belangrijk: privacy en zorgregels
 
@@ -124,8 +151,10 @@ Airtable bewaart gegevens standaard in de VS. Controleer daarom:
 
 ## 9. Open vragen
 
-1. Welke software wil je precies opzeggen? (bijv. een ander CRM, planningspakket, ECD-pakket,
-   facturatieprogramma, Excel-lijsten, SharePoint?)
-2. Blijft Exact Online je boekhoudpakket, of wil je ook daarvan af?
-3. Factureert Zuster in Huis België (SFPS) op dezelfde manier (per dag/maand) als Nederland?
-4. Heb je Zapier of Make al, of mag dat erbij komen (ca. € 20–50 per maand)?
+Beantwoord: Exact Online (facturatie/boekhouding) en Nmbrs (salaris) blijven.
+
+1. Factureert Zuster in Huis België (SFPS) op dezelfde manier (per dag/maand) als Nederland?
+   En loopt het Belgische salaris ook via Nmbrs, of via een Belgisch sociaal secretariaat?
+2. Worden zorgverleners per dag of per uur verloond in Nmbrs?
+3. Heb je Zapier of Make al, of mag dat erbij komen (ca. € 20–50 per maand)?
+4. Zijn er nog andere pakketten of Excel-lijsten die weg moeten?
